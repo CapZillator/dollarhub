@@ -1,12 +1,14 @@
+require('dotenv').config({path: './.env'});
 const express = require("express");
 const app = express();
-const port = 4000;
+//const port = 4000;
+const port = process.env.PORT;
 const exchangeRouter = require("./routes/exchange");
 const authRouter = require("./routes/auth");
 const citylistRouter = require("./routes/citylist");
 const nodeMailer = require('nodemailer');
 const cors = require('cors');
-require('dotenv').config({path: './.env'});
+
 
 app.use(express.json());
 app.use(
