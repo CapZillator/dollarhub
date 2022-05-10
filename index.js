@@ -1,8 +1,8 @@
 require('dotenv').config({path: './.env'});
 const express = require("express");
 const app = express();
-//const port = 4000;
-const port = process.env.PORT;
+const port = 4000;
+//const port = process.env.PORT;
 const exchangeRouter = require("./routes/exchange");
 const authRouter = require("./routes/auth");
 const citylistRouter = require("./routes/citylist");
