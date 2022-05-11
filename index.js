@@ -16,7 +16,7 @@ app.use(
     extended: true,
   })
 );
-app.use(cors({origin: 'https://dollarhub-vzla7.ondigitalocean.app/'}));
+app.use(cors({origin: '*'}));
 app.get("/", (req, res) => {
   res.json({ message: "oki-doki" });
 });
