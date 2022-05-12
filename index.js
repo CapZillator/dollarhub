@@ -16,9 +16,9 @@ app.use(
     extended: true,
   })
 );
-app.use(cors({origin: 'https://dollarhub.me'}));
+app.use(cors());
 app.get("/", (req, res) => {
-  res.json({ message: "oki-doki" });
+  res.json({ message: "oki-doki, die!" });
 });
 app.use("/exchange", exchangeRouter);
 app.use("/auth", authRouter);
