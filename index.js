@@ -1,7 +1,7 @@
 require('dotenv').config({path: './.env'});
 const express = require("express");
 const app = express();
-const port = 4000;
+const port = 8000;
 //const port = process.env.PORT;
 const exchangeRouter = require("./routes/exchange");
 const authRouter = require("./routes/auth");
@@ -16,7 +16,7 @@ app.use(
     extended: true,
   })
 );
-app.use(cors({origin: '*'}));
+app.use(cors({origin: 'https://dollarhub.me'}));
 app.get("/", (req, res) => {
   res.json({ message: "oki-doki" });
 });
