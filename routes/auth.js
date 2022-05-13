@@ -5,7 +5,7 @@ const auth = require('../services/auth');
 /* Регистрация нового пользователя */
 router.post("/register", async (req, res, next) => {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
+        //res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.registerUser(req.body));
     } catch (err) {
         console.error(`Ошибка регистрации пользователя`, err.message);
@@ -15,7 +15,6 @@ router.post("/register", async (req, res, next) => {
 /* Авторизация пользователя по паролю */
 router.post("/login", async (req, res, next) => {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.siginUser(req.body));
     } catch (err) {
         console.error(`Ошибка авторизации`, err.message);
@@ -25,7 +24,6 @@ router.post("/login", async (req, res, next) => {
 /* Авторизация пользователя по токену */
 router.post("/loginwithtoken", async (req, res, next) => {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.signinTokenUser(req.body));
     } catch (err) {
         console.error(`Ошибка авторизации по токену`, err.message);
@@ -35,7 +33,6 @@ router.post("/loginwithtoken", async (req, res, next) => {
 /* Обновить токен(ы) */
 router.post("/refreshtokens", async (req, res, next) => {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.refreshTokens(req.body));
     } catch (err) {
         console.error(`Ошибка обновления токенов`, err.message);
@@ -45,7 +42,6 @@ router.post("/refreshtokens", async (req, res, next) => {
 /* Проверить, свободен ли логин */
 router.post("/checklogin", async (req, res, next) => {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.checkLogin(req.body));
     } catch (err) {
         console.error(`Ошибка проверки логина`, err.message);
@@ -55,7 +51,6 @@ router.post("/checklogin", async (req, res, next) => {
 /* Проверить, свободен ли email */
 router.post("/checkemail", async (req, res, next) => {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.checkEmail(req.body));
     } catch (err) {
         console.error(`Ошибка проверки email`, err.message);
@@ -65,7 +60,6 @@ router.post("/checkemail", async (req, res, next) => {
 // Возвращает данные автора объявления
 router.post('/getauthor', async function(req, res, next) {
     try {
-       res.setHeader('Access-Control-Allow-Origin', '*');
        res.json(await auth.getAuthorData(req.body));
     } catch (err) {
       console.error(`Ошибка получения данных автора по ID`, err.message);
@@ -75,7 +69,6 @@ router.post('/getauthor', async function(req, res, next) {
 // Возвращает массив с контактными данными авторов объявлений
 router.get('/getallauthors', async function(req, res, next) {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.getAllAuthors());
     } catch (err) {
         console.error(`Ошибка получения списка авторов`, err.message);
@@ -85,7 +78,6 @@ router.get('/getallauthors', async function(req, res, next) {
 // Редактировать данные мессенджера
 router.post('/editmessanger', async function(req, res, next) {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.editAuthMessanger(req.body));
     } catch (err) {
       console.error(`Ошибка редактирования данных пользователя`, err.message);
@@ -95,7 +87,6 @@ router.post('/editmessanger', async function(req, res, next) {
 // Редактировать пароль пользователя
 router.post('/edituserpass', async function(req, res, next) {
     try {
-        res.setHeader('Access-Control-Allow-Origin', '*');
         res.json(await auth.editAuthPass(req.body));
     } catch (err) {
       console.error(`Ошибка редактирования данных пользователя`, err.message);
