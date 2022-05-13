@@ -30,6 +30,8 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ message: err.message, toCap: 'Die mthfkr die!' });
   return;
 });
+
+/*
 app.post('/send-email', function (req, res) {
   let transporter = nodeMailer.createTransport({
       host: 'smtp.yandex.ru',
@@ -56,7 +58,6 @@ app.post('/send-email', function (req, res) {
           res.render('index');
       });
 });
-/*
 app.post('/send-email', function (req, res) {
   let transporter = nodeMailer.createTransport({
       host: 'smtp.yandex.ru',
