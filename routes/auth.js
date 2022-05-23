@@ -93,5 +93,15 @@ router.post('/edituserpass', async function(req, res, next) {
       next(err);
     }
 });
+// Активировать аккаунт пользователя по email 
+router.post('/activate', async function(req, res, next) {
+    console.log('calling activate code func');
+    try {
+        res.json(await auth.activateAccount(req.body));
+    } catch (err) {
+      console.error(`Ошибка редактирования данных пользователя`, err.message);
+      next(err);
+    }
+});
 
 module.exports = router;

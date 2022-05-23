@@ -1,10 +1,12 @@
 const db = require('./db');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const dotenv = require('dotenv').config({path: './.env'});
+const path = require('path');
+const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')});
 const validator = require('./validator');
+const nodeMailer = require('nodemailer');
 
-function createPairOfTokens(id, username){
+function createPairOfTokens(id, username){//Создает пару токенов (авторизации/обновления)
     const aToken = jwt.sign(//Access token
         { tokenType: 'a',
           username: username,
@@ -77,20 +79,28 @@ async function registerUser(user){//Регистрирует нового пол
         if (await checkUser(validatedUserData)){
             let {email, username, pass, mainContactVal, mainContactType} = validatedUserData;
             let passHash = await bcrypt.hash(pass, 10);
+            const activationCode = Math.floor(Math.random() * 1000000);
+            const activationCodeHash = await bcrypt.hash(String(activationCode), 10);
+            console.log(`Activation code ${activationCode}`);
             let query = validatedUserData.reserveContactVal && validatedUserData.reserveContactType ? 
-                `INSERT INTO users (email, username, pass, mainContactVal, mainContactType, reserveContactVal, reserveContactType) 
+                `INSERT INTO users (email, username, pass, mainContactVal, mainContactType, reserveContactVal, reserveContactType, status, activationCode) 
                 VALUES ('${email}','${username}','${passHash}','${mainContactVal}','${mainContactType}',
-                '${validatedUserData.reserveContactVal}','${validatedUserData.reserveContactType}')`:
-                `INSERT INTO users (email, username, pass, mainContactVal, mainContactType) 
-                VALUES ('${email}','${username}','${passHash}','${mainContactVal}','${mainContactType}')`;
+                '${validatedUserData.reserveContactVal}','${validatedUserData.reserveContactType}', '1', '${activationCodeHash}')`:
+                `INSERT INTO users (email, username, pass, mainContactVal, mainContactType, status, activationCode) 
+                VALUES ('${email}','${username}','${passHash}','${mainContactVal}','${mainContactType}', '1', '${activationCodeHash}')`;
             const result = await db.query(query);
             const userIdRequest = await db.query(`SELECT id, username FROM users WHERE email = '${email}'`);
             if (userIdRequest.length > 0 && result.affectedRows) {
+                /*
                 const [aToken, rToken, aTokenExp, rTokenExp] = createPairOfTokens(userIdRequest[0].id, userIdRequest[0].username);
                 await db.query(`UPDATE users SET token = '${rToken}' WHERE id = ${userIdRequest[0].id}`);
                 response = {message: 'Ползователь зарегистрирован успешно.', status: 200, 
                     tokens: {accessToken: {token: aToken, expires: aTokenExp},  refreshToken: {token: rToken, expires: rTokenExp}}, 
                     username: userIdRequest[0].username, userid: userIdRequest[0].id};
+                */
+                await sendActivationEmail(email, `${activationCode}`);
+                response = {message: 'Ползователь зарегистрирован успешно.', status: 200,  
+                    username: userIdRequest[0].username, userid: userIdRequest[0].id, email: email};
             }
         }
         else response = {message: 'Такой пользователь уже существует!', status: 400, tokens: {accessToken: null, refreshToken: null}, username: null, userid: null};
@@ -114,17 +124,31 @@ async function siginUser(user){//Авторизация по паролю
                 const userFromDB = userData[0];
                 const uID = userData[0].id;
                 if (userFromDB && (await bcrypt.compare(pass, userFromDB.pass))){
-                    const [aToken, rToken, aTokenExp, rTokenExp] = createPairOfTokens(uID,  userData[0].username);
-                    const result = await db.query(`UPDATE users SET token = '${rToken}' WHERE email = '${email}'`);
-                    if (result.affectedRows) response = {
-                        message: 'Авторизация прошла успешно', 
-                        status: 200, 
-                        username: userData[0].username,
-                        userid: uID,
-                        tokens: 
-                            {accessToken: {token: aToken, expires: aTokenExp},  
-                            refreshToken: {token: rToken, expires: rTokenExp}}};
-                    else response = {message: 'Ошибка обращения к БД', status: 400, username: null, userid: null, tokens: null};
+                    /* userFromDB.status - статус аккаунта. Возможные значения:
+                        0 - default
+                        1 - зарегистрирован, не подтвержден
+                        2 - активен
+                        3 - заблокирован
+                    */
+                    if (userFromDB.status === 1){
+                        response = {message: 'Аккаунт не активирован', status: 410, username: null, userid: null, tokens: null};
+                    }
+                    else if (userFromDB.status === 2){
+                        const [aToken, rToken, aTokenExp, rTokenExp] = createPairOfTokens(uID, userData[0].username);
+                        const result = await db.query(`UPDATE users SET token = '${rToken}' WHERE email = '${email}'`);
+                        if (result.affectedRows) response = {
+                            message: 'Авторизация прошла успешно', 
+                            status: 200, 
+                            username: userData[0].username,
+                            userid: uID,
+                            tokens: 
+                                {accessToken: {token: aToken, expires: aTokenExp},  
+                                refreshToken: {token: rToken, expires: rTokenExp}}};
+                        else response = {message: 'Ошибка обращения к БД', status: 400, username: null, userid: null, tokens: null};
+                    }
+                    else if (userFromDB.status === 3){
+                        response = {message: 'Аккаунт заблокирован', status: 413, username: null, userid: null, tokens: null};
+                    }
                 }
                 else response = {message: 'Ошибка авторизации: пароль указан неверно', status: 403, username: null, userid: null, tokens: null};
             }
@@ -146,7 +170,24 @@ async function signinTokenUser(user){//Авторизация через ток�
         try {
             const decoded = jwt.verify(user.token, dotenv.parsed.TOKEN_KEY);
             if (decoded.tokenType === 'a'){
-                response = {message: 'Аутентификация выполнена успешно', status: 200, username: decoded.username, userid: decoded.id};
+                let status = await db.query(`SELECT status FROM users WHERE id = ${decoded.id}`);
+                if (status.length){
+                    if (status[0].status === 2){
+                        response = {message: 'Аутентификация выполнена успешно', status: 200, username: decoded.username, userid: decoded.id};
+                    };
+                    /*
+                    if (status[0].status === 1){
+                        response = {message: 'Ошибка аутентификации: аккаунт не активирован!', status: 410, username: decoded.username, userid: decoded.id};
+                    }
+                    else if (status[0].status === 2){
+                        response = {message: 'Аутентификация выполнена успешно', status: 200, username: decoded.username, userid: decoded.id};
+                    }
+                    else if (status[0].status === 3){
+                        response = {message: 'Ошибка аутентификации: аккаунт заблокирован!', status: 413, username: decoded.username, userid: decoded.id};
+                    }
+                    */
+                }
+                else response = {message: 'Ошибка аутентификации: аккаунт не найден!', status: 414, username: null, userid: null};
             }
             else response = {message: 'Неверный тип токена!', status: 403, tokens: null, username: null, userid: null};
         } catch (err) {
@@ -204,7 +245,8 @@ async function getAuthorData(data){//Возвращает данные авто�
               username: author[0].username,
               mainContactType: author[0].mainContactType,
               mainContactVal: author[0].mainContactVal,
-              email: author[0].email
+              email: author[0].email,
+              adsCounter: author[0].adsCounter
             }};
       }
       else result = {message: 'Данные автора не найдены!', status: 404, data: null};
@@ -270,7 +312,72 @@ async function editAuthPass(data){//Редактирует пароль поль
     else result = {message: 'Ошибка редактирования пароля: пароль не прошел верификацию!', status: 400};
     return result;
 }
-
+/* Генерирует новый код активации и оптправляет на почту пользователя */
+async function refreshActivationCode(email){
+    const activationCode = Math.floor(Math.random() * 1000000);
+    const activationCodeHash = await bcrypt.hash(String(activationCode), 10);
+    console.log(`Activation code ${activationCode}`);
+    const result = await db.query(`UPDATE users SET activationCode = '${activationCodeHash}' WHERE email = '${email}'`);
+    if (result.affectedRows){
+        await sendActivationEmail(email, `${activationCode}`);
+    };
+}
+/* Активирует аккаунт пользователя */
+async function activateAccount(data){
+    let result = {message: 'Ошибка активации аккаунта!', status: 400};
+    let validatedEmail = validator.validateData('email', {email: data.email});
+    let validatedCode = validator.validateData('code', {code: data.code});
+    console.log('Validated vals:');
+    console.log(validatedEmail.email);
+    console.log(validatedCode.code);
+    if (validatedEmail && validatedCode){
+        const userData = await db.query(
+            `SELECT * FROM users WHERE email = '${validatedEmail.email}' AND status = 1`
+        );
+        if (userData.length){
+            const userFromDB = userData[0];
+            if (await bcrypt.compare(validatedCode.code, userFromDB.activationCode)){
+                const queryResult = await db.query(`UPDATE users SET status = 2 WHERE email = '${validatedEmail.email}'`);
+                if (queryResult.affectedRows){
+                    result = {message: 'Аккаунт активирован успешно', status: 200};
+                };
+            }
+            else {
+                result = {message: 'Ошибка активации аакаунта: неверный код!', status: 403};
+                await refreshActivationCode(validatedEmail.email);
+            };
+        } 
+        else result = {message: 'Ошибка активации аакаунта: пользователь не найден!', status: 404};
+    }
+    return result;
+}
+/* Отправляет письмо с кодом активации */
+async function sendActivationEmail(to, code){
+    let transporter = nodeMailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+            user: dotenv.parsed.MAIL_USER,
+            pass: dotenv.parsed.MAIL_PASS
+        }
+    });
+    let mailOptions = {
+        from: '"Dollarhub"', // sender address
+        to: 'litehost.manager@yandex.ru', // list of receivers
+        subject: 'Завершение регистрации.', // Subject line
+        text: `Ваш код подтверждения: ${code}`, // plain text body
+        html: `<p><b>Ваш код подтверждения: ${code}</b></p>
+               <p>URL: <a href="http://localhost:3000/confirm?email=${to}&code=${code}">http://localhost:3000/confirm?email=${to}&code=${code}</a></p>` // html body
+    };
+  
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log(error);
+        }
+        console.log('Message %s sent: %s', info.messageId, info.response);
+    });
+}
 module.exports = {
     checkEmail,
     checkLogin,
@@ -283,5 +390,6 @@ module.exports = {
     getAuthorData,
     getAllAuthors,
     editAuthMessanger,
-    editAuthPass
+    editAuthPass,
+    activateAccount
 }

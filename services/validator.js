@@ -29,8 +29,8 @@ const idSchema = Joi.object({//ID пользователя/объявления
 });
 const adSchema = Joi.object({//Параметры объявления
     currency: Joi.number(),
-    amountMin: Joi.number(),
-    amountMax: Joi.number(),
+    amountMin: Joi.number().integer().min(1).max(99999999999),
+    amountMax: Joi.number().integer().min(1).max(99999999999),
     exchangeRate: Joi.number(),
     location: Joi.string()
         .trim()
@@ -74,6 +74,12 @@ const messangerSchema = Joi.object({//Мессенджер
         .required(),
     mainContactType: Joi.number().max(9).required()
 });
+const validationCode = Joi.object({//Код активации пользователя
+    code: Joi.string()
+    .trim()
+    .alphanum()
+    .required(),
+});
 function validateData(type, dataToValidate){//Валидатор данных, в зависимости от параметров
     let schema;
     switch(type){
@@ -85,6 +91,7 @@ function validateData(type, dataToValidate){//Валидатор данных, �
         case 'searchParams': schema = searchParams; break;
         case 'pass': schema = passSchema; break;
         case 'messanger': schema = messangerSchema; break;
+        case 'code': schema = validationCode; break;
         default: schema = idSchema; break;
     };
     const result = schema.validate(dataToValidate);

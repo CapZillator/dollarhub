@@ -6,7 +6,7 @@ const port = 4000;
 const exchangeRouter = require("./routes/exchange");
 const authRouter = require("./routes/auth");
 const citylistRouter = require("./routes/citylist");
-const nodeMailer = require('nodemailer');
+//const nodeMailer = require('nodemailer');
 const cors = require('cors');
 
 
@@ -30,22 +30,21 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ message: err.message, toCap: 'Die mthfkr die!' });
   return;
 });
-
 /*
-app.post('/send-email', function (req, res) {
+app.get('/send-email', function (req, res) {
   let transporter = nodeMailer.createTransport({
-      host: 'smtp.yandex.ru',
+      host: 'smtp.gmail.com',
       port: 465,
       secure: true,
       auth: {
-          user: 'senorsacacorchos@yandex.ru',
-          pass: 'Aaf141183'
+          user: 'andruf52@gmail.com',
+          pass: 'jxdxevfnhnkrlpcd'
       }
   });
   let mailOptions = {
-      from: '"Krunal Lathiya" <xx@gmail.com>', // sender address
+      from: '"Dollarhub" <andruf52@gmail.com>', // sender address
       to: 'litehost.manager@yandex.ru', // list of receivers
-      subject: 'Confirm', // Subject line
+      subject: 'Подтвердите email.', // Subject line
       text: 'Confirm email', // plain text body
       html: '<b>NodeJS Email Tutorial</b>' // html body
   };
@@ -58,6 +57,7 @@ app.post('/send-email', function (req, res) {
           res.render('index');
       });
 });
+
 app.post('/send-email', function (req, res) {
   let transporter = nodeMailer.createTransport({
       host: 'smtp.yandex.ru',
@@ -86,5 +86,5 @@ app.post('/send-email', function (req, res) {
 });
 */
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Api listening at http://localhost:${port}`);
 });

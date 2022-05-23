@@ -57,9 +57,9 @@ router.put('/', async function(req, res, next) {
     }
 });
 /* Удалить объявление по ID */
-router.delete('/:id', async function(req, res, next) {
+router.delete('/:id/:authorID', async function(req, res, next) {
     try {
-      res.json(await exchange.remove(req.params.id, req.body));
+      res.json(await exchange.remove(req.params.id, req.params.authorID, req.body));
     } catch (err) {
       console.error(`Ошибка удаления объявления `, err.message);
       next(err);

@@ -108,6 +108,7 @@ async function create(exchangeOffer){
             result = {message: 'Объявление создано успешно.', status: 200};
           };
         }
+        else result = {message: `Максимум ${config.adsLimit} объявления!`, status: 405};
       }
     };
   }
@@ -143,8 +144,26 @@ async function update(exchangeOffer){
   return result;
 }
 //Удаляет объявление
-async function remove(id, exchangeOffer){
+async function remove(id, authorId, exchangeOffer){
+  console.log(`Ads id: ${id}`);
+  console.log(`Auth id: ${authorId}`);
   let result = {message: 'Ошибка удаления объявления!', status: 400};
+  const verifiedID = validator.validateData('id', {id: id});
+  const verifiedAuthorId = validator.validateData('id', {id: authorId});
+  const securityCheck = await auth.verifyToken(exchangeOffer.token);
+  if (securityCheck.status === 200 && verifiedID && verifiedAuthorId){
+    const authorQueryResult = await db.query(`SELECT adsCounter FROM users WHERE id = ${securityCheck.id}`);
+    const queryResult = await db.query(
+      `DELETE FROM ads WHERE id = ${verifiedID.id}`
+    );
+    if (queryResult.affectedRows) {
+      if (authorQueryResult[0].adsCounter > 0) await db.query(`UPDATE users SET adsCounter = ${authorQueryResult[0].adsCounter - 1} WHERE id = ${securityCheck.id}`);
+      result = {message: 'Объявление удалено успешно.', status: 200};
+    }
+    else result = {message: 'Недостаточно прав для удаления объявления!', status: 403};
+  }
+  else result = {message: 'Объявление не найдено!', status: 404};
+  /*
   const verifiedData = validator.validateData('id', {id: id});
   const securityCheck = await auth.verifyToken(exchangeOffer.token);
   if (securityCheck.status === 200 && verifiedData){
@@ -164,7 +183,7 @@ async function remove(id, exchangeOffer){
     }
     else result = {message: 'Объявление не найдено!', status: 404};
   }
-
+  */
   return result;
 }
 

@@ -1,4 +1,6 @@
 //const dotenv = require('dotenv').config({path: './.env'});
+const path = require('path');
+const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')});
 
 const config = {
     db: {
@@ -22,10 +24,10 @@ const config = {
       database: process.env.DB_NAME
       */
       connectionLimit : 10,
-      host: "162.241.123.51",
-      user: "dollaymv_kassir",
-      password: "!Aaf141183",
-      database: "dollaymv_obmennik"
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME
     },
     listPerPage: 15,
     adsLimit: 4
