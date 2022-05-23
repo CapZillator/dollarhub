@@ -11,7 +11,7 @@ function createPairOfTokens(id, username){//Создает пару токено
         { tokenType: 'a',
           username: username,
           id: id },
-        dotenv.parsed.TOKEN_KEY,
+          process.env.TOKEN_KEY,
         {
           expiresIn: "30m",
         }
@@ -20,7 +20,7 @@ function createPairOfTokens(id, username){//Создает пару токено
         { tokenType: 'r',
           username: username,
           id: id },
-        dotenv.parsed.TOKEN_KEY,
+          process.env.TOKEN_KEY,
         {
           expiresIn: "30d",
         }
@@ -29,14 +29,14 @@ function createPairOfTokens(id, username){//Создает пару токено
     const rTokenExp = Date.now() + 30 * 24 * 60 * 60 * 1000;
     return [aToken, rToken, aTokenExp, rTokenExp];
 }
-async function verifyToken(token){
+async function verifyToken(token){//Верифицирует токен
     let response = {message: 'Ошибка верификации токена авторизации', status: 400, id: null};
     if (!token) {
         response = {message: 'Для аутентификации необходим токен', status: 404, id: null};
     }
     else {
         try {
-            const decoded = jwt.verify(token, dotenv.parsed.TOKEN_KEY);
+            const decoded = jwt.verify(token, process.env.TOKEN_KEY);
             if (decoded.tokenType === 'a') response = {message: 'Аутентификация прошла успешно', status: 200, id: decoded.id};
         } catch (err) {
             response = {message: 'Недействительный токен', status: 401, id: null};
@@ -168,7 +168,7 @@ async function signinTokenUser(user){//Авторизация через ток�
     }
     else {
         try {
-            const decoded = jwt.verify(user.token, dotenv.parsed.TOKEN_KEY);
+            const decoded = jwt.verify(user.token, process.env.TOKEN_KEY);
             if (decoded.tokenType === 'a'){
                 let status = await db.query(`SELECT status FROM users WHERE id = ${decoded.id}`);
                 if (status.length){
@@ -205,7 +205,7 @@ async function refreshTokens(props){//Обновляет токены, если 
     }
     else { 
         try {
-            const decoded = jwt.verify(props.token, dotenv.parsed.TOKEN_KEY);
+            const decoded = jwt.verify(props.token, process.env.TOKEN_KEY);
             const uID = decoded.id;
             if (decoded.tokenType === 'r'){
                 const tokenRequest = await db.query(`SELECT username, token FROM users WHERE id = '${uID}'`);
@@ -358,8 +358,8 @@ async function sendActivationEmail(to, code){
         port: 465,
         secure: true,
         auth: {
-            user: dotenv.parsed.MAIL_USER,
-            pass: dotenv.parsed.MAIL_PASS
+            user: process.env.MAIL_USER,
+            pass: process.env.MAIL_PASS
         }
     });
     let mailOptions = {
