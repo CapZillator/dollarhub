@@ -1,8 +1,6 @@
 const db = require('./db');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const path = require('path');
-const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')});
 const validator = require('./validator');
 const nodeMailer = require('nodemailer');
 
@@ -112,6 +110,7 @@ async function registerUser(user){//Регистрирует нового пол
 }
 
 async function siginUser(user){//Авторизация по паролю
+    console.log('Auth check:' + process.env.TOKEN_KEY)
     let response = {message: 'Ошибка авторизации', status: 400, username: null, userid: null, tokens: null};
     const { email, pass } = user;
     try{

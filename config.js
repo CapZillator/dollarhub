@@ -1,7 +1,3 @@
-//const dotenv = require('dotenv').config({path: './.env'});
-const path = require('path');
-const dotenv = require('dotenv').config({path: path.resolve(__dirname, '../.env')});
-
 const config = {
     db: {
       /* don't expose password or any sensitive info, done only for demo */
@@ -32,14 +28,4 @@ const config = {
     listPerPage: 15,
     adsLimit: 4
   };
-  /*
-      db: {
-      host: dotenv.parsed.DB_HOST,
-      user: dotenv.parsed.DB_USER,
-      password: dotenv.parsed.DB_PASS,
-      database: dotenv.parsed.DB_NAME
-    },
-    listPerPage: 100,
-  };
-  */
   module.exports = config;

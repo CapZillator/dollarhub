@@ -9,7 +9,6 @@ const citylistRouter = require("./routes/citylist");
 //const nodeMailer = require('nodemailer');
 const cors = require('cors');
 
-
 app.use(express.json());
 app.use(
   express.urlencoded({
@@ -30,61 +29,6 @@ app.use((err, req, res, next) => {
   res.status(statusCode).json({ message: err.message, toCap: 'Die mthfkr die!' });
   return;
 });
-/*
-app.get('/send-email', function (req, res) {
-  let transporter = nodeMailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      auth: {
-          user: 'andruf52@gmail.com',
-          pass: 'jxdxevfnhnkrlpcd'
-      }
-  });
-  let mailOptions = {
-      from: '"Dollarhub" <andruf52@gmail.com>', // sender address
-      to: 'litehost.manager@yandex.ru', // list of receivers
-      subject: 'Подтвердите email.', // Subject line
-      text: 'Confirm email', // plain text body
-      html: '<b>NodeJS Email Tutorial</b>' // html body
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-          return console.log(error);
-      }
-      console.log('Message %s sent: %s', info.messageId, info.response);
-          res.render('index');
-      });
-});
-
-app.post('/send-email', function (req, res) {
-  let transporter = nodeMailer.createTransport({
-      host: 'smtp.yandex.ru',
-      port: 465,
-      secure: true,
-      auth: {
-          user: 'senorsacacorchos@yandex.ru',
-          pass: 'Aaf141183'
-      }
-  });
-  let mailOptions = {
-      from: '"Krunal Lathiya" <xx@gmail.com>', // sender address
-      to: 'litehost.manager@yandex.ru', // list of receivers
-      subject: 'Confirm', // Subject line
-      text: 'Confirm email', // plain text body
-      html: '<b>NodeJS Email Tutorial</b>' // html body
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-          return console.log(error);
-      }
-      console.log('Message %s sent: %s', info.messageId, info.response);
-          res.render('index');
-      });
-});
-*/
 app.listen(port, () => {
   console.log(`Api listening at http://localhost:${port}`);
 });
