@@ -79,7 +79,6 @@ async function registerUser(user){//Регистрирует нового пол
             let passHash = await bcrypt.hash(pass, 10);
             const activationCode = Math.floor(Math.random() * 1000000);
             const activationCodeHash = await bcrypt.hash(String(activationCode), 10);
-            console.log(`Activation code ${activationCode}`);
             let query = validatedUserData.reserveContactVal && validatedUserData.reserveContactType ? 
                 `INSERT INTO users (email, username, pass, mainContactVal, mainContactType, reserveContactVal, reserveContactType, status, activationCode) 
                 VALUES ('${email}','${username}','${passHash}','${mainContactVal}','${mainContactType}',
@@ -110,7 +109,6 @@ async function registerUser(user){//Регистрирует нового пол
 }
 
 async function siginUser(user){//Авторизация по паролю
-    console.log('Auth check:' + process.env.TOKEN_KEY)
     let response = {message: 'Ошибка авторизации', status: 400, username: null, userid: null, tokens: null};
     const { email, pass } = user;
     try{
@@ -315,7 +313,6 @@ async function editAuthPass(data){//Редактирует пароль поль
 async function refreshActivationCode(email){
     const activationCode = Math.floor(Math.random() * 1000000);
     const activationCodeHash = await bcrypt.hash(String(activationCode), 10);
-    console.log(`Activation code ${activationCode}`);
     const result = await db.query(`UPDATE users SET activationCode = '${activationCodeHash}' WHERE email = '${email}'`);
     if (result.affectedRows){
         await sendActivationEmail(email, `${activationCode}`);
@@ -326,9 +323,6 @@ async function activateAccount(data){
     let result = {message: 'Ошибка активации аккаунта!', status: 400};
     let validatedEmail = validator.validateData('email', {email: data.email});
     let validatedCode = validator.validateData('code', {code: data.code});
-    console.log('Validated vals:');
-    console.log(validatedEmail.email);
-    console.log(validatedCode.code);
     if (validatedEmail && validatedCode){
         const userData = await db.query(
             `SELECT * FROM users WHERE email = '${validatedEmail.email}' AND status = 1`
@@ -370,106 +364,39 @@ async function sendActivationEmail(to, code){
             Код активации: ${code}
             Или перейдите по ссылке:https://dollarhub.me/confirm?email=${to}&code=${code}
             Спасибо, что выбрали Dollarhub!`, // plain text body
-        html: `<html lang="ru">
-        <head>
-            <style type = "text/css" media = "all">
-                * {
-                    margin: 0;
-                    padding: 0;
-                }
-                body {
-                    background-color: #444640;
+        html: `<!doctype html>
+                <html lang="ru">
+                    <body style="background-color: #444640;
                     color: #ffffff;
                     letter-spacing: 0.03rem;
-                }
-                header {
-                    margin: 0;
                     padding: 1rem;
-                    text-align: center;
-                    background: rgb(55,134,31);
-                    background: linear-gradient(90deg, rgba(55,134,31,1) 0%, rgba(101,167,48,1) 65%, rgba(146,187,44,1) 100%);
-                }
-                header svg {
-                    height: 4rem;
-                    width: 4rem;
-                }
-                h1 {
-                    margin: 1rem;
-                    text-align: center;
-                }
-                main {
-                    padding: 1rem;
-                }
-                a {
-                    position: relative;
-                    color: rgb(183, 226, 74);
-                    text-decoration: none;
-                }
-                a::before {
-                    content: '';
-                    position: absolute;
-                    width: 100%;
-                    height: .2rem;
-                    bottom: -.2rem;
-                    border-radius: .1rem;
-                    left: 0;
-                    background:
-                        linear-gradient(
-                        to right,
-                        rgba(55,134,31,1),
-                        rgb(122, 189, 68),
-                        rgb(183, 226, 74)
-                    );
-                    background-size: 100% .2rem, 0 .2rem;
-                    background-position: 100% 100%, 0 100%;
-                    background-repeat: no-repeat;
-                    transition: transform .4s ease-in-out;
-                    transform-origin: right;
-                    transform: scaleX(0);
-                }
-    
-                a:hover::before {
-                    transform-origin: left;
-                    transform: scaleX(1);
-                }
-                p {
-                    margin: 1.5rem;
-                    font-size: 1.2em;
-                }
-                span {
-                    background-color: rgba(101,167,48,1);
-                    padding: .25rem .5rem;
-                    letter-spacing: 0.1em;
-                    border-radius: 5%;
-                }
-            </style>
-        </head>
-        <body>
-            <header>
-                <svg width="100" height="100" version="1.1" viewBox="0 0 26.458 26.458" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                     <rect x="7.4673" y="10.072" width="86.655" height="84.918"/>
-                    </defs>
-                    <path d="m5.0306 1.6432v15.241h5.4849v-11.271h4.0375v5.168e-4a5.28 6.6578 0 0 1 5.2798 6.6575 5.28 6.6578 0 0 1-5.2798 6.658h-11.522v3.9605h1.9999v-0.0041h8.9137a11.657 10.621 0 0 0 11.657-10.622 11.657 10.621 0 0 0-11.657-10.621v-5.167e-4z" style="fill:#fff;stroke-width:.2809"/>
-                    <path d="m0.48007 20.708v4.7247h7.3111v-1.5193h-2.7466v0.0031h-3.0938v-3.2085h-0.73535z" style="fill:#fff;stroke-width:.19251"/>
-                </svg>
-            </header>
-            <main>
-                <h1>Почти готово!</h1>
-                <p>Регистрация вашего аккаунта почти завершена. Просто укажите код активации, и можно начинать пользоваться сервисом.</p>
-                <p>Код активации: <span>${code}</span></p>
-                <p>Или перейдите по ссылке: <a href="https://dollarhub.me/confirm?email=${to}&code=${code}">завершить регистрацию</a></p>
-                <p>Спасибо, что выбрали Dollarhub!</p>
-            </main>
-        </body>
-    </html>` // html body
+                    ">
+                        <h1 style="text-align: center; margin-top: 1rem; color: #ffffff;">Почти готово!</h1>
+                        <p style="margin: 1rem; font-size: 1.2em; color: #ffffff;">
+                            Регистрация вашего аккаунта почти завершена. Просто укажите код активации, и можно начинать пользоваться сервисом.
+                        </p>
+                        <p style="margin: 1rem; font-size: 1.2em; color: #ffffff;">
+                            Код активации: <span style="background-color: rgba(101,167,48,1);
+                            padding: .25rem .5rem;
+                            letter-spacing: 0.1em;
+                            border-radius: 5%;">${code}</span>
+                        </p>
+                        <p style="margin: 1rem; font-size: 1.2em; color: #ffffff;">
+                            Или перейдите по ссылке: <a href="https://dollarhub.me/confirm?email=${to}&code=${code}" style="position: relative;
+                            color: rgb(183, 226, 74);
+                            text-decoration: none;">завершить регистрацию</a>
+                        </p>
+                        <p style="margin: 1rem; font-size: 1.2em; margin-bottom: 2rem; color: #ffffff;">
+                            Спасибо, что выбрали Dollarhub!
+                        </p>
+                    </body>
+                </html>` // html body
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
             console.log(error);
         }
-        console.log('Message %s sent: %s', info.messageId, info.response);
     });
 }
 module.exports = {
