@@ -9,17 +9,13 @@ const citylistRouter = require("./routes/citylist");
 //const nodeMailer = require('nodemailer');
 const cors = require('cors');
 
-var corsOptions = {
-  origin: 'http://dollarhub.me/',
-  optionsSuccessStatus: 200 // For legacy browser support
-}
 app.use(express.json());
 app.use(
   express.urlencoded({
     extended: true,
   })
 );
-app.use(cors(corsOptions));
+app.use(cors());
 app.get("/", (req, res) => {
   res.json({ message: "oki-doki, die!" });
 });
