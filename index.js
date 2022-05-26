@@ -17,7 +17,7 @@ app.use(
 );
 app.use(cors());
 app.get("/", (req, res) => {
-  res.json({ message: "oki-doki, die!" });
+  res.json({ message: "it's still working..." });
 });
 app.use("/exchange", exchangeRouter);
 app.use("/auth", authRouter);
@@ -26,7 +26,7 @@ app.use("/citylist", citylistRouter);
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
   console.error(err.message, err.stack);
-  res.status(statusCode).json({ message: err.message, toCap: 'Die mthfkr die!' });
+  res.status(statusCode).json({ message: err.message });
   return;
 });
 app.listen(port, () => {
