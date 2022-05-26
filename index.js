@@ -10,7 +10,7 @@ const citylistRouter = require("./routes/citylist");
 const cors = require('cors');
 
 var corsOptions = {
-  origin: 'https://dollarhub.me/',
+  origin: 'http://dollarhub.me/',
   optionsSuccessStatus: 200 // For legacy browser support
 }
 app.use(express.json());
