@@ -364,8 +364,7 @@ async function sendActivationEmail(to, code){
             Код активации: ${code}
             Или перейдите по ссылке:https://dollarhub.me/confirm?email=${to}&code=${code}
             Спасибо, что выбрали Dollarhub!`, // текстовая версия
-        html: `<!doctype html>
-                <html lang="ru">
+        html:   `<html lang="ru">
                     <body style="background-color: #444640;
                     color: #ffffff;
                     letter-spacing: 0.03rem;
