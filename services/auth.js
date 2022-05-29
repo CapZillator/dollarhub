@@ -356,14 +356,14 @@ async function sendActivationEmail(to, code){
         }
     });
     let mailOptions = {
-        from: '"Dollarhub"', // sender address
-        to: 'litehost.manager@yandex.ru', // list of receivers
+        from: '"Dollarhub"', // отправитель
+        to: to, // получатель
         subject: 'Завершение регистрации.', // Subject line
         text: `Почти готово!
             Регистрация вашего аккаунта почти завершена. Просто укажите код активации, и можно начинать пользоваться сервисом.
             Код активации: ${code}
             Или перейдите по ссылке:https://dollarhub.me/confirm?email=${to}&code=${code}
-            Спасибо, что выбрали Dollarhub!`, // plain text body
+            Спасибо, что выбрали Dollarhub!`, // текстовая версия
         html: `<!doctype html>
                 <html lang="ru">
                     <body style="background-color: #444640;
@@ -390,7 +390,7 @@ async function sendActivationEmail(to, code){
                             Спасибо, что выбрали Dollarhub!
                         </p>
                     </body>
-                </html>` // html body
+                </html>` // html версия
     };
   
     transporter.sendMail(mailOptions, (error, info) => {
